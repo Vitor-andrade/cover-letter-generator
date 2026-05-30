@@ -335,11 +335,18 @@ handling**.
 - [ADR-004 — Local CV parsing](./architecture/ADR-004-local-cv-parsing.md)
 - [ADR-005 — Encrypted secret storage](./architecture/ADR-005-secret-storage.md)
 
-## Next Steps
+## Status
 
-1. Review/approve this plan and the implementation plan at
-   [`/plan/architecture-clg-mvp-1.md`](../plan/architecture-clg-mvp-1.md).
-2. Begin **Step B — scaffold** (repo skeleton, module boundaries, tooling).
-3. Commit the curated `agents/` and `skills/` folders.
-4. Draft the public README (using the `create-readme` skill) once the skeleton
-   exists.
+**MVP delivered (2026-05-30).** All 8 phases / 41 tasks of
+[`/plan/architecture-clg-mvp-1.md`](../plan/architecture-clg-mvp-1.md) are complete
+and verified (ruff, mypy --strict, import-linter, pytest, Vitest, production build).
+See the [README](../README.md) for setup and run instructions.
+
+### Deferred to Phase B (post-MVP)
+
+- Persist manual editor edits (a manual `LetterVersion` endpoint); today the editor's
+  manual mode is client-side and exports use the latest AI version.
+- Token streaming (SSE) and background jobs for long generations.
+- OCR for scanned/image PDFs.
+- OS-keychain secret storage (currently AES-256-GCM file per ADR-005).
+- `reportlab` fallback for PDF where WeasyPrint native libs are unavailable.

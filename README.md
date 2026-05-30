@@ -20,37 +20,79 @@ Browser (localhost) ─▶ FastAPI ─▶ generation ─▶ provider (Ollama / G
 
 See [`docs/clg-architecture-plan.md`](docs/clg-architecture-plan.md) for the full architecture, diagrams, and decision records.
 
-## Quick start
+## Prerequisites
 
-> [!NOTE]
-> Requires Python ≥ 3.11. [`uv`](https://docs.astral.sh/uv/) is the recommended launcher.
+| Tool | Version | Why |
+|------|---------|-----|
+| [Python](https://www.python.org/) | ≥ 3.11 | backend runtime |
+| [uv](https://docs.astral.sh/uv/) | latest | dependency management & launcher |
+| [Node.js](https://nodejs.org/) + npm | ≥ 18 | building the web UI from source |
+| [Ollama](https://ollama.com) | latest | *optional* — free local AI (default provider) |
+
+Install `uv` if you don't have it:
 
 ```bash
-# Run without installing anything permanent:
-uvx clg
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# then restart your shell, or: source $HOME/.local/bin/env
 ```
 
-This boots a local server and opens your browser. On first run it creates `~/.clg/` (owner-only) for the database and your encrypted API keys.
+## Run it (from source)
 
-### Use the free local model (Ollama)
+> [!IMPORTANT]
+> The web UI must be **built once** before the app can serve it. A fresh clone has no
+> pre-built UI — skipping the build step shows only a JSON placeholder at `/`.
 
 ```bash
-# Install Ollama (see https://ollama.com), then pull a model:
+# 1. Clone
+git clone https://github.com/Vitor-andrade/cover-letter-generator.git
+cd cover-letter-generator
+
+# 2. Install backend dependencies
+uv sync
+
+# 3. Build the web UI (outputs into src/clg/api/static/)
+cd web && npm install && npm run build && cd ..
+
+# 4. Launch — starts the local server and opens your browser
+uv run clg
+```
+
+That's it. On first run the app creates `~/.clg/` (owner-only) for its SQLite database and your encrypted API keys.
+
+> [!TIP]
+> To run on a fixed port without auto-opening the browser:
+> ```bash
+> CLG_PORT=8000 CLG_OPEN_BROWSER=false uv run clg
+> ```
+
+## Configure your AI provider
+
+The app works out of the box with **Ollama** (local, free). To use it, install Ollama and pull a model:
+
+```bash
 ollama pull llama3.1
 ```
 
-Ollama is the default provider — no key required. Open **Settings** in the app to pick a different model.
+To use a cloud provider instead, open **Settings** in the app, pick `gemini`, `anthropic`, or `openai`, and paste your API key. Keys are encrypted at rest (AES-256-GCM) under `~/.clg/` and are only ever sent to the provider you select.
 
-### Use a cloud provider (bring your own key)
+You can also configure everything via environment variables (prefix `CLG_`):
 
-Open **Settings**, choose `gemini`, `anthropic`, or `openai`, and paste your API key. Keys are encrypted at rest (AES-256-GCM) and never sent anywhere except the provider you selected.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLG_AI_PROVIDER` | `ollama` | `ollama` \| `gemini` \| `anthropic` \| `openai` |
+| `CLG_DEFAULT_LANGUAGE` | `en` | default letter language |
+| `CLG_HOST` | `127.0.0.1` | bind address (keep local) |
+| `CLG_PORT` | `0` (random free port) | server port |
+| `CLG_OPEN_BROWSER` | `true` | auto-open the browser on launch |
+| `CLG_DATA_DIR` | `~/.clg` | where the DB and keys live |
 
-You can also configure via environment variables (prefix `CLG_`):
+Example (Anthropic via env):
 
 ```bash
 export CLG_AI_PROVIDER=anthropic
-export CLG_ANTHROPIC_API_KEY=sk-...
+export CLG_ANTHROPIC_API_KEY=sk-ant-...
 export CLG_ANTHROPIC_MODEL=claude-sonnet-4-6
+uv run clg
 ```
 
 > [!TIP]
@@ -58,10 +100,12 @@ export CLG_ANTHROPIC_MODEL=claude-sonnet-4-6
 
 ## Exporting to PDF
 
-PDF export uses [WeasyPrint](https://weasyprint.org), which needs native libraries (cairo, pango).
+PDF export uses [WeasyPrint](https://weasyprint.org), which needs native libraries (cairo, pango). DOCX, HTML, Markdown, and TXT need **no** extra system dependencies.
 
-> [!IMPORTANT]
-> If PDF export reports missing libraries, install them per the [WeasyPrint install guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation). DOCX, HTML, Markdown, and TXT work without any extra system dependencies.
+> [!NOTE]
+> If PDF export reports missing libraries, install them per the
+> [WeasyPrint install guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation)
+> (e.g. `brew install pango` on macOS) and restart the app.
 
 ## Development
 
@@ -73,22 +117,30 @@ uv run ruff check .        # lint
 uv run mypy                # types
 uv run lint-imports        # architecture boundaries
 
-# Frontend (web/)
+# Frontend (in web/)
 cd web
 npm install
-npm run dev                # Vite dev server (proxies /api to :8000)
+npm run dev                # Vite dev server with hot reload (proxies /api to :8000)
 npm test                   # Vitest + React Testing Library
-npm run build              # builds into src/clg/api/static/
+npm run typecheck          # tsc
+npm run build              # build into ../src/clg/api/static/
+```
 
-# Run the assembled app
-uv run clg
+**Dev workflow with hot reload:** run the backend on a fixed port and the Vite dev server alongside it:
+
+```bash
+# terminal 1 — backend API
+CLG_PORT=8000 CLG_OPEN_BROWSER=false uv run clg
+
+# terminal 2 — UI with hot reload at http://localhost:5173
+cd web && npm run dev
 ```
 
 ### Project layout
 
 ```
 src/clg/
-  bootstrap/     # launcher (uvx clg)
+  bootstrap/     # launcher (uv run clg / uvx clg)
   api/           # FastAPI routers + DTOs (thin adapters)
   core/          # framework-agnostic domain
     ingestion/   # local CV parsing (pypdf / python-docx)
@@ -98,9 +150,11 @@ src/clg/
     secrets/     # AES-256-GCM key store
     persistence/ # SQLModel entities + repositories
     config/      # CLG_-prefixed settings
-web/             # React + Vite UI
+web/             # React + Vite UI (built into src/clg/api/static/)
+docs/            # architecture plan, ADRs, diagrams
+plan/            # implementation plan
 ```
 
 ## Privacy
 
-By default, everything stays on your machine. Your CV is parsed locally, the database is a local SQLite file, and API keys are stored encrypted under `~/.clg/`. Content is sent to a third party **only** when you explicitly select a cloud provider for generation.
+By default, everything stays on your machine. Your CV is parsed locally, the database is a local SQLite file, and API keys are stored encrypted under `~/.clg/`. Content is sent to a third party **only** when you explicitly select a cloud provider for generation. There is no telemetry.
