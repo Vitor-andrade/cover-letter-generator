@@ -87,10 +87,10 @@ export to PDF, HTML, Markdown, TXT, and DOCX.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-017 | Implement `ingestion/parse.py`: `extract_pdf` (pypdf), `extract_docx` (python-docx), `normalize_manual`; size/type guards (SEC-003); low-confidence/empty signal | | |
-| TASK-018 | Implement `generation/prompt.py`: English-first templates with language override; delimit untrusted CV/job sections; injection-hardening instructions (SEC-002) | | |
-| TASK-019 | Implement `generation/service.py`: orchestrate profile+job → prompt → provider.complete → persist `CoverLetter` + `LetterVersion(origin=ai)` | | |
-| TASK-020 | Implement section/paragraph regeneration entry point (regenerate a part, append new `LetterVersion`) | | |
+| TASK-017 | Implement `ingestion/parse.py`: `extract_pdf` (pypdf), `extract_docx` (python-docx), `normalize_manual`; size/type guards (SEC-003); low-confidence/empty signal | ✅ | 2026-05-30 |
+| TASK-018 | Implement `generation/prompt.py`: English-first templates with language override; delimit untrusted CV/job sections; injection-hardening instructions (SEC-002) | ✅ | 2026-05-30 |
+| TASK-019 | Implement `generation/service.py`: orchestrate profile+job → prompt → provider.complete → persist `CoverLetter` + `LetterVersion(origin=ai)` | ✅ | 2026-05-30 |
+| TASK-020 | Implement section/paragraph regeneration entry point (regenerate a part, append new `LetterVersion`) | ✅ | 2026-05-30 |
 
 ### Implementation Phase 5 — Export
 
@@ -98,11 +98,11 @@ export to PDF, HTML, Markdown, TXT, and DOCX.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-021 | Implement `export/base.py` renderer interface + format registry | | |
-| TASK-022 | Implement TXT + Markdown renderers (string templates) | | |
-| TASK-023 | Implement HTML renderer (Jinja2 template, print-friendly CSS) | | |
-| TASK-024 | Implement PDF renderer (weasyprint from the HTML template; document cairo/pango deps; reportlab fallback noted) | | |
-| TASK-025 | Implement DOCX renderer (python-docx) | | |
+| TASK-021 | Implement `export/base.py` renderer interface + format registry | ✅ | 2026-05-30 |
+| TASK-022 | Implement TXT + Markdown renderers (string templates) | ✅ | 2026-05-30 |
+| TASK-023 | Implement HTML renderer (Jinja2 template, print-friendly CSS) | ✅ | 2026-05-30 |
+| TASK-024 | Implement PDF renderer (weasyprint from the HTML template; document cairo/pango deps; reportlab fallback noted) | ✅ | 2026-05-30 |
+| TASK-025 | Implement DOCX renderer (python-docx) | ✅ | 2026-05-30 |
 
 ### Implementation Phase 6 — API layer
 
@@ -110,12 +110,12 @@ export to PDF, HTML, Markdown, TXT, and DOCX.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-026 | `profiles` router: create (manual or upload), get, list, update extracted text | | |
-| TASK-027 | `jobs` router: create, get, list | | |
-| TASK-028 | `generation` router: POST generate (profile_id, job_id, language, provider), POST regenerate-section | | |
-| TASK-029 | `export` router: GET/POST export(letter_id, format) → file download with correct content-type | | |
-| TASK-030 | `settings` router: get/set active provider+model+language; set/delete provider API key (writes to secrets store) | | |
-| TASK-031 | App wiring: localhost bind, CORS locked to local origin, request size limits, error handling, health endpoint | | |
+| TASK-026 | `profiles` router: create (manual or upload), get, list, update extracted text | ✅ | 2026-05-30 |
+| TASK-027 | `jobs` router: create, get, list | ✅ | 2026-05-30 |
+| TASK-028 | `generation` router: POST generate (profile_id, job_id, language, provider), POST regenerate-section | ✅ | 2026-05-30 |
+| TASK-029 | `export` router: GET/POST export(letter_id, format) → file download with correct content-type | ✅ | 2026-05-30 |
+| TASK-030 | `settings` router: get/set active provider+model+language; set/delete provider API key (writes to secrets store) | ✅ | 2026-05-30 |
+| TASK-031 | App wiring: localhost bind, CORS locked to local origin, request size limits, error handling, health endpoint | ✅ | 2026-05-30 |
 
 ### Implementation Phase 7 — Web UI
 

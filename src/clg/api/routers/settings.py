@@ -1,0 +1,65 @@
+"""Settings endpoints — active provider/model/language and provider API keys.
+
+Non-secret settings (active provider, default language) persist in the DB
+``Setting`` table, overriding env defaults. Provider API keys go to the
+encrypted secret store (ADR-005) and are never returned to the client — only the
+list of providers that have a key is exposed.
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, status
+from sqlmodel import Session
+
+from clg.api.deps import get_session
+from clg.api.schemas import ProviderKeyUpdate, SettingsRead, SettingsUpdate
+from clg.core.config import get_settings
+from clg.core.persistence.repositories import SqlSettingsRepository
+from clg.core.providers.registry import available_providers
+from clg.core.secrets.store import SecretStore
+
+router = APIRouter(prefix="/api/settings", tags=["settings"])
+
+_PROVIDER_KEY = "ai_provider"
+_LANGUAGE_KEY = "default_language"
+
+
+def _read(session: Session) -> SettingsRead:
+    repo = SqlSettingsRepository(session)
+    env = get_settings()
+    return SettingsRead(
+        ai_provider=repo.get(_PROVIDER_KEY) or env.ai_provider,
+        default_language=repo.get(_LANGUAGE_KEY) or env.default_language,
+        available_providers=available_providers(),
+        providers_with_keys=SecretStore(env).list_keys(),
+    )
+
+
+@router.get("", response_model=SettingsRead)
+def get_settings_view(session: Session = Depends(get_session)) -> SettingsRead:
+    return _read(session)
+
+
+@router.put("", response_model=SettingsRead)
+def update_settings(
+    payload: SettingsUpdate, session: Session = Depends(get_session)
+) -> SettingsRead:
+    repo = SqlSettingsRepository(session)
+    if payload.ai_provider is not None:
+        repo.set(_PROVIDER_KEY, payload.ai_provider.lower())
+    if payload.default_language is not None:
+        repo.set(_LANGUAGE_KEY, payload.default_language)
+    return _read(session)
+
+
+@router.put("/keys", response_model=SettingsRead)
+def set_provider_key(
+    payload: ProviderKeyUpdate, session: Session = Depends(get_session)
+) -> SettingsRead:
+    SecretStore(get_settings()).set_key(payload.provider.lower(), payload.api_key)
+    return _read(session)
+
+
+@router.delete("/keys/{provider}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_provider_key(provider: str) -> None:
+    SecretStore(get_settings()).delete_key(provider.lower())

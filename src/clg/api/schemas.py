@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from clg.core.persistence.models import ProfileSource, VersionOrigin
+
+_FROM_ORM = ConfigDict(from_attributes=True)
 
 # --- profiles ------------------------------------------------------------- #
 
@@ -23,6 +25,8 @@ class ProfileCreate(BaseModel):
 
 
 class ProfileRead(BaseModel):
+    model_config = _FROM_ORM
+
     id: int
     name: str
     background_text: str
@@ -40,6 +44,8 @@ class JobCreate(BaseModel):
 
 
 class JobRead(BaseModel):
+    model_config = _FROM_ORM
+
     id: int
     title: str
     company: str | None
@@ -65,6 +71,8 @@ class RegenerateSectionRequest(BaseModel):
 
 
 class LetterVersionRead(BaseModel):
+    model_config = _FROM_ORM
+
     id: int
     version_no: int
     content: str
@@ -89,7 +97,8 @@ class LetterRead(BaseModel):
 class SettingsRead(BaseModel):
     ai_provider: str
     default_language: str
-    values: dict[str, str] = {}
+    available_providers: list[str] = []
+    providers_with_keys: list[str] = []
 
 
 class SettingsUpdate(BaseModel):
