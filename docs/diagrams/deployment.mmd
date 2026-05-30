@@ -1,0 +1,27 @@
+graph TB
+    subgraph machine["User's machine (macOS / Linux / Windows)"]
+        subgraph proc["Single Python process — uvx clg"]
+            uvicorn[uvicorn ASGI server<br/>127.0.0.1:PORT]
+            fastapi[FastAPI app<br/>API + StaticFiles]
+            core[Core domain modules]
+        end
+        browser[Default browser<br/>auto-opened]
+        fsdata["~/.clg/<br/>clg.db · key.bin 0600 · config"]
+        ollama_local[Ollama daemon<br/>optional, localhost:11434]
+    end
+
+    cloud{{Optional cloud LLM APIs<br/>Gemini / Anthropic / OpenAI}}
+
+    browser -->|HTTP| uvicorn
+    uvicorn --> fastapi
+    fastapi --> core
+    core --> fsdata
+    core -->|HTTP| ollama_local
+    core -.->|HTTPS, BYO key| cloud
+
+    classDef proc fill:#dae8fc,stroke:#6c8ebf,color:#1f2328;
+    classDef data fill:#d5e8d4,stroke:#82b366,color:#1f2328;
+    classDef ext fill:#ffe6cc,stroke:#d79b00,color:#1f2328;
+    class uvicorn,fastapi,core,browser proc;
+    class fsdata data;
+    class ollama_local,cloud ext;

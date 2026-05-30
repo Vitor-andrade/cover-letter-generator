@@ -1,0 +1,58 @@
+graph TB
+    subgraph UI["Web UI (React + Vite, built to static)"]
+        editor[Letter Editor<br/>AI-assist ⇄ manual toggle]
+        intake[Intake Forms<br/>job + profile + CV upload]
+        settings_ui[Settings<br/>provider / model / language]
+    end
+
+    subgraph API["API Layer (FastAPI routers)"]
+        r_gen[/generation/]
+        r_profile[/profiles/]
+        r_job[/jobs/]
+        r_export[/export/]
+        r_settings[/settings/]
+        r_static[Static file server<br/>serves built UI]
+    end
+
+    subgraph CORE["Core Domain (modular, framework-agnostic)"]
+        ingestion[ingestion<br/>pypdf · python-docx · manual]
+        generation[generation<br/>prompt build · orchestration · lang]
+        providers[providers<br/>Protocol: ollama/gemini/anthropic/openai]
+        export[export<br/>pdf · html · md · txt · docx]
+        secrets[secrets<br/>AES-256-GCM key store]
+        persistence[persistence<br/>SQLModel repositories]
+        config[config<br/>pydantic-settings · CLG_ env]
+    end
+
+    db[(SQLite)]
+    keyfile[(Encrypted key file 0600)]
+
+    editor --> r_gen
+    intake --> r_profile
+    intake --> r_job
+    editor --> r_export
+    settings_ui --> r_settings
+
+    r_gen --> generation
+    r_profile --> ingestion
+    r_profile --> persistence
+    r_job --> persistence
+    r_export --> export
+    r_settings --> secrets
+    r_settings --> config
+
+    generation --> providers
+    generation --> persistence
+    ingestion --> persistence
+    providers --> secrets
+    persistence --> db
+    secrets --> keyfile
+
+    classDef ui fill:#dae8fc,stroke:#6c8ebf,color:#1f2328;
+    classDef api fill:#e1d5e7,stroke:#9673a6,color:#1f2328;
+    classDef core fill:#fff2cc,stroke:#d6b656,color:#1f2328;
+    classDef data fill:#d5e8d4,stroke:#82b366,color:#1f2328;
+    class editor,intake,settings_ui ui;
+    class r_gen,r_profile,r_job,r_export,r_settings,r_static api;
+    class ingestion,generation,providers,export,secrets,persistence,config core;
+    class db,keyfile data;

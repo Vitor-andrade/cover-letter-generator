@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor U as User (browser)
+    participant API as FastAPI
+    participant ING as ingestion
+    participant GEN as generation
+    participant SEC as secrets
+    participant P as provider (selected)
+    participant DB as SQLite
+    participant EXP as export
+
+    U->>API: Upload CV (PDF/DOCX) or type background
+    API->>ING: extract_text(file) / normalize(manual)
+    ING-->>API: structured background text
+    API->>DB: persist Profile
+
+    U->>API: Submit job + "Generate" (lang, provider)
+    API->>DB: persist JobInput
+    API->>GEN: generate(profile, job, lang, provider_id)
+    GEN->>SEC: get_key(provider_id)
+    SEC-->>GEN: decrypted key (if cloud)
+    GEN->>GEN: build prompt (sanitize injected text)
+    GEN->>P: complete(prompt)
+    P-->>GEN: draft letter
+    GEN->>DB: persist CoverLetter (v1)
+    GEN-->>API: draft
+    API-->>U: render in editor (AI-assist mode)
+
+    U->>API: Edit manually / regenerate section
+    API->>DB: persist CoverLetter (v2…)
+
+    U->>API: Export (pdf/html/md/txt/docx)
+    API->>EXP: render(letter, format)
+    EXP-->>API: file bytes
+    API-->>U: download

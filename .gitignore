@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+
+# Node / Vite UI
+web/node_modules/
+web/dist/
+
+# Built UI served by FastAPI (generated from web/)
+src/clg/api/static/
+
+# Local runtime data & secrets (must never be committed)
+.clg/
+*.key
+*.bin
+clg.db
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

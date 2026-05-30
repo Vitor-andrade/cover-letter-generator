@@ -1,0 +1,149 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="system-context" name="System Context">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sc_user" value="Developer / Job Applicant" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="80" y="360" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_boundary" value="Cover Letter Generator — local machine (localhost)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="340" y="260" width="360" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_app" value="CLG App&#10;FastAPI + embedded React UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="380" y="310" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_store" value="Local SQLite&#10;+ encrypted key file" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="420" y="410" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_ollama" value="Ollama&#10;local LLM runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="240" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_gemini" value="Google Gemini API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="320" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_anthropic" value="Anthropic API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="390" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_openai" value="OpenAI API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="460" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e1" style="endArrow=classic;html=1;" edge="1" parent="1" source="sc_user" target="sc_app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="sc_app" target="sc_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e3" value="default, free, offline" style="endArrow=classic;html=1;" edge="1" parent="1" source="sc_app" target="sc_ollama">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e4" value="BYO key" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="sc_app" target="sc_gemini">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e5" value="BYO key" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="sc_app" target="sc_anthropic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_e6" value="BYO key" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="sc_app" target="sc_openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="components" name="Components">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c_ui" value="Web UI (React + Vite)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="220" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="c_editor" value="Letter Editor (AI ⇄ manual)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_intake" value="Intake (job/profile/CV)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_settings_ui" value="Settings (provider/model/lang)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="180" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_api" value="API Layer (FastAPI routers)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="340" y="40" width="220" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="c_routers" value="/generation/ · /profiles/ · /jobs/ · /export/ · /settings/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="360" y="90" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="c_core" value="Core Domain (framework-agnostic)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="640" y="40" width="280" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="c_mods" value="ingestion · generation · providers · export · secrets · persistence · config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="660" y="90" width="240" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="c_db" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="700" y="420" width="100" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c_key" value="Encrypted key file 0600" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="840" y="420" width="100" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c_e1" value="HTTP/JSON" style="endArrow=classic;html=1;" edge="1" parent="1" source="c_ui" target="c_api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_e2" value="calls" style="endArrow=classic;html=1;" edge="1" parent="1" source="c_api" target="c_core">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_e3" style="endArrow=classic;html=1;" edge="1" parent="1" source="c_mods" target="c_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_e4" style="endArrow=classic;html=1;" edge="1" parent="1" source="c_mods" target="c_key">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="deployment" name="Deployment">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="d_machine" value="User's machine (macOS / Linux / Windows)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="560" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="d_proc" value="Single Python process — uvx clg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="110" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="d_uvicorn" value="uvicorn ASGI 127.0.0.1:PORT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="150" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_fastapi" value="FastAPI app — API + StaticFiles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="200" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_core" value="Core domain modules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="250" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_browser" value="Default browser (auto-opened)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="d_fsdata" value="~/.clg/ — clg.db · key.bin 0600 · config" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="440" y="130" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d_ollama" value="Ollama daemon (optional) :11434" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="440" y="340" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="d_cloud" value="Optional cloud LLM APIs&#10;Gemini / Anthropic / OpenAI" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="700" y="240" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="d_e1" value="HTTP" style="endArrow=classic;html=1;" edge="1" parent="1" source="d_browser" target="d_uvicorn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="d_core" target="d_fsdata">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_e3" value="HTTP" style="endArrow=classic;html=1;" edge="1" parent="1" source="d_core" target="d_ollama">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_e4" value="HTTPS, BYO key" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="d_core" target="d_cloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

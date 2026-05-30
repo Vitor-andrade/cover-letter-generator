@@ -1,0 +1,26 @@
+graph TB
+    user([Developer / Job Applicant])
+
+    subgraph CLG["Cover Letter Generator — local machine (localhost)"]
+        app[CLG App<br/>FastAPI + embedded React UI]
+        store[(Local SQLite<br/>+ encrypted key file)]
+    end
+
+    ollama[Ollama<br/>local LLM runtime]
+    gemini[Google Gemini API]
+    anthropic[Anthropic API]
+    openai[OpenAI API]
+
+    user -->|browser on 127.0.0.1| app
+    app --> store
+    app -->|default, free, offline| ollama
+    app -.->|BYO key, optional| gemini
+    app -.->|BYO key, optional| anthropic
+    app -.->|BYO key, optional| openai
+
+    classDef internal fill:#dae8fc,stroke:#6c8ebf,color:#1f2328;
+    classDef external fill:#ffe6cc,stroke:#d79b00,color:#1f2328;
+    classDef data fill:#d5e8d4,stroke:#82b366,color:#1f2328;
+    class app internal;
+    class ollama,gemini,anthropic,openai external;
+    class store data;

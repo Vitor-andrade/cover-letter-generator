@@ -1,0 +1,31 @@
+graph LR
+    subgraph A["Phase A — MVP (single user, local)"]
+        a1[Sync request/response generation]
+        a2[SQLite single file]
+        a3[Built React served by FastAPI]
+        a4[All 5 exports in-process]
+    end
+
+    subgraph B["Phase B — Power user / quality"]
+        b1[Streaming token output SSE]
+        b2[Background jobs for long generations]
+        b3[Letter versioning + diff history]
+        b4[Prompt/template library + tone presets]
+        b5[Provider auto-fallback Ollama→cloud]
+    end
+
+    subgraph C["Phase C — Optional hosted / multi-user"]
+        c1[Pluggable DB: Postgres adapter]
+        c2[Per-user auth + isolation]
+        c3[Server-side key vault]
+        c4[Queue for export/generation workers]
+    end
+
+    A --> B --> C
+
+    classDef pa fill:#d5e8d4,stroke:#82b366,color:#1f2328;
+    classDef pb fill:#fff2cc,stroke:#d6b656,color:#1f2328;
+    classDef pc fill:#ffe6cc,stroke:#d79b00,color:#1f2328;
+    class a1,a2,a3,a4 pa;
+    class b1,b2,b3,b4,b5 pb;
+    class c1,c2,c3,c4 pc;
