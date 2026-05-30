@@ -4,13 +4,13 @@ version: 1.0
 date_created: 2026-05-30
 last_updated: 2026-05-30
 owner: Vitor
-status: 'In progress'
+status: 'Completed'
 tags: [architecture, feature, mvp]
 ---
 
 # Introduction
 
-![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
+![Status: Completed](https://img.shields.io/badge/status-Completed-brightgreen)
 
 This plan implements the CLG MVP defined in
 [`docs/clg-architecture-plan.md`](../docs/clg-architecture-plan.md). CLG is a
@@ -123,11 +123,11 @@ export to PDF, HTML, Markdown, TXT, and DOCX.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-032 | API client + types (generated or hand-written from DTOs); app shell, routing, responsive layout | | |
-| TASK-033 | Intake screens: job form + profile (manual entry and CV upload with editable extracted text) | | |
-| TASK-034 | Editor: AI-assist ⇄ manual toggle, real-time preview, regenerate-section, language selector | | |
-| TASK-035 | Settings screen: provider/model selection, API key entry, Ollama health indicator | | |
-| TASK-036 | Export UI: pick format, trigger download; surface errors (e.g. missing PDF system deps) | | |
+| TASK-032 | API client + types (generated or hand-written from DTOs); app shell, routing, responsive layout | ✅ | 2026-05-30 |
+| TASK-033 | Intake screens: job form + profile (manual entry and CV upload with editable extracted text) | ✅ | 2026-05-30 |
+| TASK-034 | Editor: AI-assist ⇄ manual toggle, real-time preview, regenerate-section, language selector | ✅ | 2026-05-30 |
+| TASK-035 | Settings screen: provider/model selection, API key entry, Ollama health indicator | ✅ | 2026-05-30 |
+| TASK-036 | Export UI: pick format, trigger download; surface errors (e.g. missing PDF system deps) | ✅ | 2026-05-30 |
 
 ### Implementation Phase 8 — Tests, docs, packaging
 
@@ -135,11 +135,11 @@ export to PDF, HTML, Markdown, TXT, and DOCX.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-037 | Backend tests (pytest+httpx): ingestion, generation (fake provider), export (all 5), secrets round-trip, API happy/edge paths | | |
-| TASK-038 | UI tests (Vitest+RTL) for intake, editor toggle, export flow | | |
-| TASK-039 | Write public README via `create-readme` skill (install, `uvx clg`, providers, privacy) | | |
-| TASK-040 | Validate `uvx clg` end-to-end on a clean environment; document Ollama + optional cloud setup | | |
-| TASK-041 | Commit curated `agents/` and `skills/` folders; ensure `~/.clg/` and secrets are git-ignored | | |
+| TASK-037 | Backend tests (pytest+httpx): ingestion, generation (fake provider), export (all 5), secrets round-trip, API happy/edge paths | ✅ | 2026-05-30 |
+| TASK-038 | UI tests (Vitest+RTL) for intake, editor toggle, export flow | ✅ | 2026-05-30 |
+| TASK-039 | Write public README via `create-readme` skill (install, `uvx clg`, providers, privacy) | ✅ | 2026-05-30 |
+| TASK-040 | Validate `uvx clg` end-to-end on a clean environment; document Ollama + optional cloud setup | ✅ | 2026-05-30 |
+| TASK-041 | Commit curated `agents/` and `skills/` folders; ensure `~/.clg/` and secrets are git-ignored | ✅ | 2026-05-30 |
 
 ## 3. Alternatives
 
