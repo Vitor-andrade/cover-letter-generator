@@ -105,10 +105,18 @@ All settings can be passed as environment variables (prefix `CLG_`):
 
 PDF export uses [WeasyPrint](https://weasyprint.org), which needs native libraries (cairo, pango). DOCX, HTML, Markdown, and TXT need **no** extra system dependencies.
 
+On **macOS**, install the libraries with Homebrew — the launcher then finds them automatically (it adds Homebrew's lib dir to the dynamic-linker path and re-execs once, so `uv run clg` "just works"):
+
+```bash
+brew install pango   # pulls in cairo and the rest
+```
+
 > [!NOTE]
-> If PDF export reports missing libraries, install them per the
+> On other platforms, or if PDF export still reports missing libraries, install
+> them per the
 > [WeasyPrint install guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation)
-> (e.g. `brew install pango` on macOS) and restart the app.
+> and restart the app. You can also point the dynamic linker at the libs
+> yourself, e.g. `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run clg`.
 
 ## Development
 
