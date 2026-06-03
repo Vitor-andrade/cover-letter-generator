@@ -20,7 +20,7 @@ from clg.core.providers.openai import OpenAIProvider
 # Default model per provider; overridable via CLG_<PROVIDER>_MODEL or settings.
 DEFAULT_MODELS: dict[str, str] = {
     "ollama": "llama3.1",
-    "gemini": "gemini-2.0-flash",
+    "gemini": "gemini-3.5-flash",
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-4o",
     "fake": "fake-1",
