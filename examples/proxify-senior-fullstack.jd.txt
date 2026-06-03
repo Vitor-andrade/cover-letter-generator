@@ -1,0 +1,59 @@
+About the job
+
+About us:
+Talent has no borders. Proxify's mission is to connect top developers around the world with opportunities they deserve. So, it doesn't matter where you are; we are here to help you fast-track your independent career in the right direction. 🙂
+
+Since our launch, Proxify's developers have successfully worked with 1200+ happy clients to build their products and growth features. 5000+ talented developers trust Proxify and its network to fulfill their dreams and objectives.
+
+Proxify is shaped by a global network of supportive, talented developers interested in remote full-time jobs. Our Glassdoor (4.5/5) and Trustpilot (4.8/5) ratings reflect the trust developers place in us and our commitment to our members' success.
+
+The Role:
+We are looking for a Senior Fullstack Python Developer to join our fast-growing Network. In this role, you'll lead the design and implementation of scalable backend services and APIs using Python (FastAPI, Django, or Flask), while delivering polished, performant user interfaces using modern frontend frameworks such as React.js or Vue.js.
+
+You will collaborate closely with product managers, designers, and other engineers to deliver end-to-end features, contribute to architectural decisions, and mentor junior developers. This is a long-term, full-time remote engagement, with the opportunity to work with cloud platforms, CI/CD pipelines, and modern tooling to build real products used globally.
+
+What we are looking for:
+- 5+ years of professional software development experience with strong fullstack exposure.
+- 3+ years of production experience with Python (FastAPI, Django, Flask).
+- Solid knowledge of JavaScript/TypeScript, HTML5, CSS3.
+- Strong experience with React.js or Vue.js (or similar modern frameworks such as Next.js/Nuxt.js).
+- Experience with relational databases (PostgreSQL, MySQL) and ORMs such as SQLAlchemy or Django ORM.
+- Strong understanding of RESTful API design and integration patterns.
+- Experience writing automated tests (unit, integration) for both backend and frontend.
+- Practical experience with Docker and familiarity with CI/CD pipelines (GitHub Actions, GitLab CI, CircleCI, etc.).
+- Experience deploying and operating services in the cloud (AWS, Azure, GCP).
+- Strong problem-solving skills and excellent English communication (written and spoken).
+- Ability to work independently and deliver high-quality results in a remote setup.
+
+Nice-to-have:
+- Deep experience with TypeScript and modern frontend tooling (Vite, Webpack, Turbopack).
+- Familiarity with microservices, DDD, CQRS, or event-driven architectures.
+- Experience with GraphQL and schema design.
+- Knowledge of message brokers (RabbitMQ, Kafka, Redis Streams).
+- Experience with Kubernetes or other orchestration platforms.
+- Exposure to performance tuning, caching strategies, and observability (logs, tracing, metrics).
+- Security best practices (OWASP, auth flows, OAuth2/OpenID Connect).
+- Background in startups or fast-paced product environments.
+- Contributions to open-source projects or published technical content.
+
+Responsibilities:
+- Design, implement, and operate scalable backend services using Python (FastAPI, Django, Flask).
+- Build and maintain responsive, accessible web UIs using React.js, Vue.js, or similar modern frameworks.
+- Design, document, and consume RESTful APIs (and optionally GraphQL).
+- Integrate backend systems with relational and NoSQL databases.
+- Ensure high code quality through unit/integration tests, code reviews, and automated pipelines.
+- Make architectural decisions across backend, frontend, and system integration (monolith vs microservices).
+- Collaborate with designers and product teams to translate requirements into technical solutions and excellent user experiences.
+- Troubleshoot production issues, optimize performance, and ensure reliability and security.
+- Mentor and guide other engineers, helping elevate team best practices.
+- Work in an agile environment and contribute to continuous process and delivery improvements.
+- Document architectural decisions, API contracts, workflows, and deployment procedures.
+
+What we offer:
+- Get paid, not played: no more unreliable clients. Enjoy on-time monthly payments with flexible withdrawal options.
+- Predictable project hours: enjoy a harmonious work-life balance with consistent 8-hour working days with clients.
+- Flex days, so you can recharge: enjoy up to 24 flex days off per year without losing pay, for full-time positions found through Proxify.
+- Career-accelerating positions at cutting-edge companies: discover exclusive long-term remote positions at the world's most exciting companies.
+- Hand-picked opportunities, just for you: skip the typical recruitment roadblocks and biases with personally matched positions.
+- One seamless process, multiple opportunities: a one-time contracting process for endless opportunities, with no extra assessments.
+- Compensation: enjoy the same pay, every month with positions landed through Proxify.
