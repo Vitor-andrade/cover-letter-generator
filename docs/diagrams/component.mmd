@@ -15,7 +15,7 @@ graph TB
     end
 
     subgraph CORE["Core Domain (modular, framework-agnostic)"]
-        ingestion[ingestion<br/>pypdf · python-docx · manual]
+        ingestion[ingestion<br/>pdfplumber · python-docx · manual]
         generation[generation<br/>prompt build · orchestration · lang]
         providers[providers<br/>Protocol: ollama/gemini/anthropic/openai]
         export[export<br/>pdf · html · md · txt · docx]

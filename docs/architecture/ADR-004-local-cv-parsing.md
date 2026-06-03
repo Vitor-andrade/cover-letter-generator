@@ -13,9 +13,18 @@ an LLM to extract/structure fields.
 
 ## Decision
 
-**Parse CVs locally** with `pypdf` (PDF) and `python-docx` (DOCX), plus a manual
-text-entry path. The extracted/typed text is passed to the LLM **only at
-generation time**, inside a sanitized prompt. No separate LLM extraction step.
+**Parse CVs locally** with `pdfplumber` (PDF, layout-aware, MIT-licensed) and
+`python-docx` (DOCX — body paragraphs **plus tables, headers and footers**),
+plus a manual text-entry path. Extracted text is whitespace-normalized for
+readability. The extracted/typed text is passed to the LLM **only at generation
+time**, inside a sanitized prompt. No separate LLM extraction step.
+
+> **Update (2026-06-03):** PDF parsing moved from `pypdf` to `pdfplumber`
+> (layout-aware, far more faithful on columns/tables; MIT — `pymupdf` was
+> rejected for its AGPL license). DOCX extraction was extended beyond paragraphs
+> to include tables/headers/footers, which CV templates commonly use and which
+> the original paragraphs-only pass silently dropped. Optional LLM-assisted
+> reading for cloud users remains a future, opt-in possibility (see "Alternatives").
 
 ## Rationale
 
