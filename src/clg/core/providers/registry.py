@@ -1,8 +1,8 @@
 """Provider registry and selection.
 
 Maps a provider name to a builder that constructs a configured
-:class:`LLMProvider`, pulling cloud API keys from the encrypted secret store
-(ADR-005) and the active provider/model from settings or ``CLG_`` env vars.
+:class:`LLMProvider`, pulling cloud API keys and the active provider/model from
+settings or ``CLG_`` env vars (e.g. ``CLG_ANTHROPIC_API_KEY``).
 """
 
 from __future__ import annotations
@@ -16,7 +16,6 @@ from clg.core.providers.fake import FakeProvider
 from clg.core.providers.gemini import GeminiProvider
 from clg.core.providers.ollama import OllamaProvider
 from clg.core.providers.openai import OpenAIProvider
-from clg.core.secrets.store import SecretStore
 
 # Default model per provider; overridable via CLG_<PROVIDER>_MODEL or settings.
 DEFAULT_MODELS: dict[str, str] = {
@@ -36,6 +35,11 @@ def available_providers() -> list[str]:
     return ["ollama", "gemini", "anthropic", "openai"]
 
 
+def cloud_providers() -> list[str]:
+    """Providers that require a bring-your-own API key (configured via env)."""
+    return ["gemini", "anthropic", "openai"]
+
+
 def _build_cloud(name: str, api_key: str) -> LLMProvider:
     if name == "gemini":
         return GeminiProvider(api_key)
@@ -50,15 +54,14 @@ def build_provider(
     name: str | None = None,
     *,
     settings: Settings | None = None,
-    secrets: SecretStore | None = None,
 ) -> LLMProvider:
     """Construct the selected provider.
 
     Resolution order for the provider name: explicit arg → settings/env
-    (``CLG_AI_PROVIDER``) → ``ollama``. Cloud providers require a stored API key.
+    (``CLG_AI_PROVIDER``) → ``ollama``. Cloud providers require their API key to
+    be configured via env (e.g. ``CLG_ANTHROPIC_API_KEY``).
     """
     settings = settings or get_settings()
-    secrets = secrets or SecretStore(settings)
     name = (name or settings.ai_provider or "ollama").lower()
 
     if name == "ollama":
@@ -66,10 +69,11 @@ def build_provider(
     if name == "fake":
         return FakeProvider()
     if name in _CLOUD:
-        api_key = secrets.get_key(name)
+        api_key = settings.provider_api_key(name)
         if not api_key:
             raise ProviderError(
-                f"No API key stored for provider '{name}'. Add one in Settings."
+                f"No API key configured for provider '{name}'. "
+                f"Set CLG_{name.upper()}_API_KEY in your .env."
             )
         return _build_cloud(name, api_key)
     raise ProviderError(f"Unknown provider: {name}")

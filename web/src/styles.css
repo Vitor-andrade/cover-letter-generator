@@ -278,6 +278,21 @@ body {
   color: white;
   background: linear-gradient(100deg, var(--accent), var(--accent-2));
 }
+.toggle.wrap {
+  flex-wrap: wrap;
+}
+
+/* Provider selector lives in the header (replaces the old Settings modal). */
+.providers {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.providers button {
+  text-transform: capitalize;
+}
+.providers button[aria-pressed="true"] .dot {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
 
 /* ---------- letter preview ---------- */
 .preview {
@@ -334,21 +349,6 @@ body {
 }
 .toast.ok {
   background: var(--ok);
-}
-
-/* ---------- modal ---------- */
-.scrim {
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 10, 20, 0.45);
-  backdrop-filter: blur(4px);
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  z-index: 40;
-}
-.modal {
-  width: min(440px, 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

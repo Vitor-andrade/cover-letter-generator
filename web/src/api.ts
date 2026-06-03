@@ -121,13 +121,6 @@ export const api = {
       body: JSON.stringify(body),
     }).then(json<Settings>),
 
-  setProviderKey: (provider: string, api_key: string) =>
-    fetch("/api/settings/keys", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, api_key }),
-    }).then(json<Settings>),
-
   exportUrl: (letterId: number, fmt: ExportFormat) => `/api/export/${letterId}/${fmt}`,
 };
 

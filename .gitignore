@@ -18,6 +18,7 @@ web/dist/
 src/clg/api/static/
 
 # Local runtime data & secrets (must never be committed)
+.env
 .clg/
 *.key
 *.bin

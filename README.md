@@ -5,7 +5,7 @@ Craft personalized, professional cover letters for international tech roles — 
 - 🔒 **Local-first & private** — runs at `127.0.0.1`; no telemetry, no hosted backend.
 - 🆓 **Free by default** — Ollama runs locally at zero cost; cloud providers are optional and pay-per-use with your own key.
 - ✍️ **AI-assist ⇄ manual** — generate a tailored draft, then refine it by prompt or edit it yourself.
-- 🌍 **Multi-language** — English-first, with a per-letter language override.
+- 🌍 **Multi-language** — English-first, with a per-letter language picker (English, Português, Español, Français, Deutsch).
 - 📄 **Export anywhere** — PDF, DOCX, HTML, Markdown, and TXT.
 
 ## How it works
@@ -14,8 +14,8 @@ You provide your background (paste it or upload a PDF/DOCX CV — parsed locally
 
 ```
 Browser (localhost) ─▶ FastAPI ─▶ generation ─▶ provider (Ollama / Gemini / Anthropic / OpenAI)
-                                       │
-                                   SQLite + encrypted key file (~/.clg)
+                                       │                         ▲
+                                   SQLite (~/.clg)        keys from .env (CLG_*_API_KEY)
 ```
 
 See [`docs/clg-architecture-plan.md`](docs/clg-architecture-plan.md) for the full architecture, diagrams, and decision records.
@@ -50,14 +50,17 @@ cd cover-letter-generator
 # 2. Install backend dependencies
 uv sync
 
-# 3. Build the web UI (outputs into src/clg/api/static/)
+# 3. Configure (optional for Ollama) — copy the example and add your key
+cp .env.example .env   # then edit .env if you use a cloud provider
+
+# 4. Build the web UI (outputs into src/clg/api/static/)
 cd web && npm install && npm run build && cd ..
 
-# 4. Launch — starts the local server and opens your browser
+# 5. Launch — starts the local server and opens your browser
 uv run clg
 ```
 
-That's it. On first run the app creates `~/.clg/` (owner-only) for its SQLite database and your encrypted API keys.
+That's it. On first run the app creates `~/.clg/` (owner-only) for its SQLite database. Provider API keys live in your `.env` (git-ignored), never in the database.
 
 > [!TIP]
 > To run on a fixed port without auto-opening the browser:
@@ -73,27 +76,27 @@ The app works out of the box with **Ollama** (local, free). To use it, install O
 ollama pull llama3.1
 ```
 
-To use a cloud provider instead, open **Settings** in the app, pick `gemini`, `anthropic`, or `openai`, and paste your API key. Keys are encrypted at rest (AES-256-GCM) under `~/.clg/` and are only ever sent to the provider you select.
+To use a cloud provider instead, add its API key to your `.env` and select the provider from the **header** in the app. Keys are read **only** from the environment/`.env` — the app never accepts a pasted key over HTTP, and never stores or returns key values. The header shows a green dot for any provider whose key is configured (Ollama is always available); switching providers is one click.
 
-You can also configure everything via environment variables (prefix `CLG_`):
+```dotenv
+# .env
+CLG_AI_PROVIDER=anthropic
+CLG_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+All settings can be passed as environment variables (prefix `CLG_`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CLG_AI_PROVIDER` | `ollama` | `ollama` \| `gemini` \| `anthropic` \| `openai` |
 | `CLG_DEFAULT_LANGUAGE` | `en` | default letter language |
+| `CLG_GEMINI_API_KEY` | _(unset)_ | API key for Gemini (required to use it) |
+| `CLG_ANTHROPIC_API_KEY` | _(unset)_ | API key for Anthropic (required to use it) |
+| `CLG_OPENAI_API_KEY` | _(unset)_ | API key for OpenAI (required to use it) |
 | `CLG_HOST` | `127.0.0.1` | bind address (keep local) |
 | `CLG_PORT` | `0` (random free port) | server port |
 | `CLG_OPEN_BROWSER` | `true` | auto-open the browser on launch |
-| `CLG_DATA_DIR` | `~/.clg` | where the DB and keys live |
-
-Example (Anthropic via env):
-
-```bash
-export CLG_AI_PROVIDER=anthropic
-export CLG_ANTHROPIC_API_KEY=sk-ant-...
-export CLG_ANTHROPIC_MODEL=claude-sonnet-4-6
-uv run clg
-```
+| `CLG_DATA_DIR` | `~/.clg` | where the SQLite DB lives |
 
 > [!TIP]
 > Gemini's free tier is a good no-cost cloud option if you don't want to run a local model.
@@ -143,11 +146,10 @@ src/clg/
   bootstrap/     # launcher (uv run clg / uvx clg)
   api/           # FastAPI routers + DTOs (thin adapters)
   core/          # framework-agnostic domain
-    ingestion/   # local CV parsing (pypdf / python-docx)
+    ingestion/   # local CV parsing (pdfplumber / python-docx)
     generation/  # prompt building + orchestration
     providers/   # ollama / gemini / anthropic / openai + registry
     export/      # pdf / docx / html / markdown / txt renderers
-    secrets/     # AES-256-GCM key store
     persistence/ # SQLModel entities + repositories
     config/      # CLG_-prefixed settings
 web/             # React + Vite UI (built into src/clg/api/static/)
@@ -157,4 +159,4 @@ plan/            # implementation plan
 
 ## Privacy
 
-By default, everything stays on your machine. Your CV is parsed locally, the database is a local SQLite file, and API keys are stored encrypted under `~/.clg/`. Content is sent to a third party **only** when you explicitly select a cloud provider for generation. There is no telemetry.
+By default, everything stays on your machine. Your CV is parsed locally, the database is a local SQLite file, and provider API keys are read only from your git-ignored `.env` — never stored in the database, never exposed by the API. Content is sent to a third party **only** when you explicitly select a cloud provider for generation. There is no telemetry.

@@ -2,7 +2,8 @@
 
 The domain core stays framework-agnostic: settings are plain Pydantic and the
 data directory (``~/.clg`` by default) is created with owner-only permissions so
-the SQLite database and the encrypted key files are never world-readable.
+the SQLite database is never world-readable. Provider API keys are supplied via
+``CLG_<PROVIDER>_API_KEY`` env vars (e.g. in a git-ignored ``.env``).
 """
 
 from __future__ import annotations
@@ -40,18 +41,26 @@ class Settings(BaseSettings):
     ai_provider: str = "ollama"
     default_language: str = "en"
 
+    # --- provider API keys (bring-your-own, configured via env/.env) ------
+    # Cloud providers read their key from these vars (e.g. CLG_ANTHROPIC_API_KEY).
+    # An empty value means the provider is not configured and cannot be used.
+    gemini_api_key: str = ""
+    anthropic_api_key: str = ""
+    openai_api_key: str = ""
+
     # --- derived paths ----------------------------------------------------
     @property
     def db_path(self) -> Path:
         return self.data_dir / "clg.db"
 
-    @property
-    def master_key_path(self) -> Path:
-        return self.data_dir / "master.key"
-
-    @property
-    def keys_path(self) -> Path:
-        return self.data_dir / "keys.bin"
+    def provider_api_key(self, name: str) -> str | None:
+        """Return the configured API key for a cloud provider, or ``None``."""
+        key = {
+            "gemini": self.gemini_api_key,
+            "anthropic": self.anthropic_api_key,
+            "openai": self.openai_api_key,
+        }.get(name.lower(), "")
+        return key or None
 
     def ensure_data_dir(self) -> Path:
         """Create the data directory (owner-only, 0700) if it does not exist."""

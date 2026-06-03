@@ -6,16 +6,25 @@ import {
   type Letter,
   type Settings,
 } from "./api";
-import { SettingsModal } from "./Settings";
 import { Field, Panel, Toast } from "./ui";
 
 const EXPORTS: ExportFormat[] = ["pdf", "docx", "html", "markdown", "txt"];
+
+// Fixed set of supported output languages — a button group, so the user can
+// never type a value the model has to guess at.
+const LANGUAGES: { code: string; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "pt", label: "Português" },
+  { code: "es", label: "Español" },
+  { code: "fr", label: "Français" },
+  { code: "de", label: "Deutsch" },
+];
+
 type ProfileMode = "manual" | "upload";
 type EditMode = "ai" | "manual";
 
 export function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{ msg: string; kind: "ok" | "err" } | null>(null);
 
   // intake
@@ -49,6 +58,21 @@ export function App() {
   function flash(msg: string, kind: "ok" | "err") {
     setToast({ msg, kind });
     window.setTimeout(() => setToast(null), 3200);
+  }
+
+  function providerUsable(p: string): boolean {
+    return p === "ollama" || (settings?.providers_with_keys.includes(p) ?? false);
+  }
+
+  async function selectProvider(p: string) {
+    if (!settings || settings.ai_provider === p) return;
+    try {
+      const updated = await api.updateSettings({ ai_provider: p });
+      setSettings(updated);
+      flash(`AI provider set to ${p}.`, "ok");
+    } catch (e) {
+      flash(e instanceof Error ? e.message : "Could not change provider", "err");
+    }
   }
 
   async function uploadCV(file: File) {
@@ -123,13 +147,6 @@ export function App() {
     window.open(api.exportUrl(letter.id, fmt), "_blank");
   }
 
-  const providerChip = settings ? (
-    <span className="chip">
-      <span className={`dot ${settings.ai_provider === "ollama" || settings.providers_with_keys.includes(settings.ai_provider) ? "ok" : "err"}`} />
-      {settings.ai_provider}
-    </span>
-  ) : null;
-
   return (
     <div className="app">
       <header className="topbar">
@@ -137,12 +154,30 @@ export function App() {
           <h1>Cover Letter Generator</h1>
           <span>local-first · BYO key + local AI</span>
         </div>
-        <div className="row" style={{ flex: "0 0 auto", gap: "0.6rem" }}>
-          {providerChip}
-          <button className="btn btn-ghost" onClick={() => setShowSettings(true)}>
-            Settings
-          </button>
-        </div>
+        {settings && (
+          <div className="toggle providers" role="group" aria-label="AI provider">
+            {settings.available_providers.map((p) => {
+              const usable = providerUsable(p);
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={settings.ai_provider === p}
+                  onClick={() => selectProvider(p)}
+                  title={
+                    usable
+                      ? `Use ${p}`
+                      : `Set CLG_${p.toUpperCase()}_API_KEY in your .env to use ${p}`
+                  }
+                >
+                  <span className={`dot ${usable ? "ok" : "err"}`} />
+                  {p}
+                  {p === "ollama" ? " · local" : ""}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       <div className="workspace">
@@ -200,14 +235,23 @@ export function App() {
             <Field label="Job description">
               <textarea className="textarea" value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the job posting…" />
             </Field>
-            <div className="row" style={{ alignItems: "flex-end" }}>
-              <Field label="Letter language">
-                <input className="input" value={language} onChange={(e) => setLanguage(e.target.value)} placeholder="en" />
-              </Field>
-              <button className="btn btn-primary" onClick={generate} disabled={!canGenerate} style={{ flex: "1 1 200px" }}>
-                {busy && !letter ? "Generating…" : "Generate cover letter"}
-              </button>
-            </div>
+            <Field label="Letter language">
+              <div className="toggle wrap" role="group" aria-label="Letter language">
+                {LANGUAGES.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    aria-pressed={language === l.code}
+                    onClick={() => setLanguage(l.code)}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            <button className="btn btn-primary" onClick={generate} disabled={!canGenerate} style={{ width: "100%" }}>
+              {busy && !letter ? "Generating…" : "Generate cover letter"}
+            </button>
           </Panel>
         </div>
 
@@ -277,21 +321,6 @@ export function App() {
           )}
         </Panel>
       </div>
-
-      <AnimatePresence>
-        {showSettings && settings && (
-          <SettingsModal
-            settings={settings}
-            onClose={() => setShowSettings(false)}
-            onSaved={(s) => {
-              setSettings(s);
-              setShowSettings(false);
-              flash("Settings saved.", "ok");
-            }}
-            onError={(msg) => flash(msg, "err")}
-          />
-        )}
-      </AnimatePresence>
 
       <Toast message={toast?.msg ?? null} kind={toast?.kind ?? "ok"} />
     </div>

@@ -104,8 +104,3 @@ class SettingsRead(BaseModel):
 class SettingsUpdate(BaseModel):
     ai_provider: str | None = None
     default_language: str | None = None
-
-
-class ProviderKeyUpdate(BaseModel):
-    provider: str
-    api_key: str

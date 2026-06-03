@@ -51,9 +51,15 @@ def test_full_flow(client):
         assert client.get(f"/api/export/{letter['id']}/{fmt}").status_code == 200
 
 
-def test_provider_key_never_leaks(client):
-    client.put("/api/settings/keys", json={"provider": "anthropic", "api_key": "sk-secret"})
+def test_settings_reflect_env_keys(client, monkeypatch):
+    from clg.core.config import get_settings
+
+    get_settings.cache_clear()
+    monkeypatch.setenv("CLG_ANTHROPIC_API_KEY", "sk-secret")
     body = client.get("/api/settings").json()
+    get_settings.cache_clear()
+
+    # The configured provider is advertised, but the key value never leaves the server.
     assert "anthropic" in body["providers_with_keys"]
     assert "sk-secret" not in json.dumps(body)
 
