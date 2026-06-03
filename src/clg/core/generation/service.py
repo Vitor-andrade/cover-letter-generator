@@ -85,6 +85,7 @@ class GenerationService:
             company=job.company,
             job_description=job.description,
             language=language,
+            candidate_name=prof.name,
         )
         content = llm.complete(prompt, CompletionParams(model=chosen_model, language=language))
         letter = self._letters.add(

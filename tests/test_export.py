@@ -5,7 +5,14 @@ from __future__ import annotations
 from clg.core.export.base import ExportError, LetterDocument, render
 
 DOC = LetterDocument(
-    content="Dear Hiring Manager,\n\nI am excited to apply.\n\nSincerely,\nVitor",
+    content=(
+        "Vitor Cavalcante\n"
+        "vitor@example.com · +55 61 99999-0000 · linkedin.com/in/vitor · Brasília, Brazil\n"
+        "RE: Senior Engineer\n"
+        "Dear Hiring Manager,\n\n"
+        "I am excited to apply.\n\n"
+        "Sincerely,\nVitor Cavalcante"
+    ),
     title="Cover Letter",
     candidate_name="Vitor Cavalcante",
     language="en",
@@ -13,9 +20,19 @@ DOC = LetterDocument(
 
 
 def test_text_formats():
+    txt = render(DOC, "txt").decode()
     assert b"Dear Hiring Manager" in render(DOC, "txt")
-    assert render(DOC, "markdown").startswith(b"# Vitor")
-    assert b"<!doctype html>" in render(DOC, "html").lower()
+    # Content is the single source of the header — the name is not duplicated.
+    assert txt.count("vitor@example.com") == 1
+    assert txt.startswith("Vitor Cavalcante\nvitor@example.com")
+
+    md = render(DOC, "markdown").decode()
+    assert not md.startswith("#")  # no synthetic name heading injected
+    assert "vitor@example.com" in md
+
+    html = render(DOC, "html").lower()
+    assert b"<!doctype html>" in html
+    assert b"<h1>" not in html  # name comes from content, not a rendered heading
 
 
 def test_docx_is_a_zip():

@@ -21,7 +21,6 @@ _TEMPLATE = Template(
 </style>
 </head>
 <body>
-{% if candidate_name %}<h1>{{ candidate_name }}</h1>{% endif %}
 {% for para in paragraphs %}<p>{{ para }}</p>
 {% endfor %}</body>
 </html>
@@ -34,7 +33,6 @@ def build_html(doc: LetterDocument) -> str:
     return _TEMPLATE.render(
         language=doc.language,
         title=doc.title,
-        candidate_name=doc.candidate_name,
         paragraphs=paragraphs,
     )
 

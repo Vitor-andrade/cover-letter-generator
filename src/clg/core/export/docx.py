@@ -17,11 +17,15 @@ class DocxRenderer:
             import docx
 
             document = docx.Document()
-            if doc.candidate_name:
-                document.add_heading(doc.candidate_name, level=1)
-            for para in (p.strip() for p in doc.content.split("\n\n")):
-                if para:
-                    document.add_paragraph(para)
+            # The content already includes its header and signature. Split on
+            # blank lines into paragraphs; preserve single newlines within a
+            # block (e.g. the contact header) as Word line breaks.
+            for block in (b for b in doc.content.split("\n\n") if b.strip()):
+                paragraph = document.add_paragraph()
+                for i, line in enumerate(block.split("\n")):
+                    if i:
+                        paragraph.add_run().add_break()
+                    paragraph.add_run(line)
             buffer = io.BytesIO()
             document.save(buffer)
         except Exception as exc:  # noqa: BLE001 - normalize docx errors

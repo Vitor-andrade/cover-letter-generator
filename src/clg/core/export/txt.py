@@ -11,5 +11,6 @@ class TxtRenderer:
     extension = "txt"
 
     def render(self, doc: LetterDocument) -> bytes:
-        header = f"{doc.candidate_name}\n\n" if doc.candidate_name else ""
-        return (header + doc.content.strip() + "\n").encode("utf-8")
+        # The generated letter already contains its own header (name + contact)
+        # and signature, so the content is rendered verbatim.
+        return (doc.content.strip() + "\n").encode("utf-8")

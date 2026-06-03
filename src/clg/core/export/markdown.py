@@ -11,8 +11,5 @@ class MarkdownRenderer:
     extension = "md"
 
     def render(self, doc: LetterDocument) -> bytes:
-        parts: list[str] = []
-        if doc.candidate_name:
-            parts.append(f"# {doc.candidate_name}\n")
-        parts.append(doc.content.strip() + "\n")
-        return "\n".join(parts).encode("utf-8")
+        # The letter content already carries its header and signature.
+        return (doc.content.strip() + "\n").encode("utf-8")
