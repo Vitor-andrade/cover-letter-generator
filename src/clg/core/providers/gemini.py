@@ -28,6 +28,11 @@ class GeminiProvider(LLMProvider):
                 config=types.GenerateContentConfig(
                     temperature=params.temperature,
                     max_output_tokens=params.max_tokens,
+                    # Writing a cover letter is a bounded task. On Gemini 3.x
+                    # "thinking" models the internal reasoning eats the output
+                    # budget, truncating the letter (finish_reason=MAX_TOKENS);
+                    # disable it so the whole budget produces the letter.
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
             return (response.text or "").strip()

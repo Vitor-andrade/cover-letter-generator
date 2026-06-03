@@ -87,7 +87,6 @@ class GenerationService:
             language=language,
         )
         content = llm.complete(prompt, CompletionParams(model=chosen_model, language=language))
-
         letter = self._letters.add(
             CoverLetter(
                 profile_id=profile_id,

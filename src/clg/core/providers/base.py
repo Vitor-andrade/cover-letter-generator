@@ -25,7 +25,7 @@ class CompletionParams:
 
     model: str
     language: str = "en"
-    max_tokens: int = 1024
+    max_tokens: int = 2048
     temperature: float = 0.7
 
 
