@@ -6,9 +6,20 @@ import {
   type Letter,
   type Settings,
 } from "./api";
-import { Field, Panel, Toast } from "./ui";
+import { Field, Panel, Stepper, type StepDef, Toast } from "./ui";
 
 const EXPORTS: ExportFormat[] = ["pdf", "docx", "html", "markdown", "txt"];
+
+type StepKey = "background" | "job" | "review";
+
+// The generation flow as three linear steps. Background is always reachable;
+// the job step opens once the background is filled; review opens once a letter
+// exists. The user can click back to any reachable step.
+const STEPS: StepDef[] = [
+  { key: "background", label: "Background" },
+  { key: "job", label: "Generate letter" },
+  { key: "review", label: "Review letter" },
+];
 
 // Fixed set of supported output languages — a button group, so the user can
 // never type a value the model has to guess at.
@@ -47,6 +58,7 @@ export function App() {
   const [language, setLanguage] = useState("en");
   const [instruction, setInstruction] = useState("");
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState<StepKey>("background");
 
   useEffect(() => {
     api
@@ -116,7 +128,26 @@ export function App() {
     }
   }
 
-  const canGenerate = name.trim() && background.trim() && title.trim() && jobDesc.trim() && !busy;
+  const backgroundReady = Boolean(name.trim() && background.trim());
+  const canGenerate = backgroundReady && title.trim() && jobDesc.trim() && !busy;
+
+  function stepEnabled(key: string): boolean {
+    if (key === "background") return true;
+    if (key === "job") return backgroundReady;
+    return Boolean(letter); // review
+  }
+
+  // Persist the background before moving on, so edits aren't lost even if the
+  // user doesn't generate. Advancing is best-effort: a save failure still lets
+  // them proceed (generate() will retry the save).
+  async function goToJob() {
+    try {
+      await saveProfile();
+    } catch (e) {
+      flash(e instanceof Error ? e.message : "Could not save profile", "err");
+    }
+    setStep("job");
+  }
 
   // Persist the background to the current profile (PATCH), or create one the
   // first time (POST). Returns the profile id to generate against.
@@ -161,6 +192,7 @@ export function App() {
       setLetter(result);
       setContent(result.latest_version?.content ?? "");
       setEditMode("ai");
+      setStep("review");
       flash("Cover letter generated.", "ok");
     } catch (e) {
       flash(e instanceof Error ? e.message : "Generation failed", "err");
@@ -227,9 +259,16 @@ export function App() {
         )}
       </header>
 
-      <div className="workspace">
-        {/* ---- Intake ---- */}
-        <div>
+      <Stepper
+        steps={STEPS}
+        current={step}
+        isEnabled={stepEnabled}
+        onSelect={(k) => setStep(k as StepKey)}
+      />
+
+      <div className="step-body">
+        {/* ---- Step 1: Background ---- */}
+        {step === "background" && (
           <Panel title="Your background" hint="Upload a CV or paste it — text stays on your machine.">
             <div className="toolbar" style={{ marginBottom: "0.6rem" }}>
               <span className="hint">
@@ -276,8 +315,14 @@ export function App() {
                 placeholder="10 years building backend systems in Go and Python; led a team of 6; shipped…"
               />
             </Field>
+            <button className="btn btn-primary" onClick={goToJob} disabled={!backgroundReady} style={{ width: "100%", marginTop: "0.3rem" }}>
+              Continue
+            </button>
           </Panel>
+        )}
 
+        {/* ---- Step 2: The job ---- */}
+        {step === "job" && (
           <Panel title="The job" hint="What role are you applying for?">
             <div className="row">
               <Field label="Job title">
@@ -304,14 +349,25 @@ export function App() {
                 ))}
               </div>
             </Field>
-            <button className="btn btn-primary" onClick={generate} disabled={!canGenerate} style={{ width: "100%" }}>
-              {busy && !letter ? "Generating…" : "Generate cover letter"}
-            </button>
+            <div className="row" style={{ marginTop: "0.3rem" }}>
+              <button className="btn btn-ghost" onClick={() => setStep("background")} style={{ flex: "0 0 auto" }}>
+                Back
+              </button>
+              <button className="btn btn-primary" onClick={generate} disabled={!canGenerate} style={{ flex: 1 }}>
+                {busy && !letter ? "Generating…" : "Generate cover letter"}
+              </button>
+            </div>
           </Panel>
-        </div>
+        )}
 
-        {/* ---- Editor ---- */}
+        {/* ---- Step 3: Review ---- */}
+        {step === "review" && (
         <Panel title="Your letter" hint="Switch between the AI draft and manual editing.">
+          <div className="toolbar">
+            <button className="btn btn-ghost" onClick={() => setStep("job")} style={{ flex: "0 0 auto" }}>
+              Back
+            </button>
+          </div>
           <div className="toolbar">
             <div className="toggle" role="group" aria-label="Edit mode">
               <button aria-pressed={editMode === "ai"} onClick={() => setEditMode("ai")} disabled={!letter}>
@@ -377,6 +433,7 @@ export function App() {
             </p>
           )}
         </Panel>
+        )}
       </div>
 
       <Toast message={toast?.msg ?? null} kind={toast?.kind ?? "ok"} />

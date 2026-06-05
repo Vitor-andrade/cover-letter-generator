@@ -18,7 +18,10 @@ function mockFetch() {
       new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
 
     if (url.endsWith("/api/settings") && method === "GET") return ok(settings);
+    // No saved profiles → the app starts blank on the Background step.
+    if (url.endsWith("/api/profiles") && method === "GET") return ok([]);
     if (url.endsWith("/api/profiles") && method === "POST") return ok({ id: 1 });
+    if (url.includes("/api/profiles/") && method === "PATCH") return ok({ id: 1 });
     if (url.endsWith("/api/jobs") && method === "POST") return ok({ id: 2 });
     if (url.endsWith("/api/generation") && method === "POST")
       return ok({
@@ -42,29 +45,35 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Walk the stepper from the Background step through to a generated letter.
+async function generateLetter(user: ReturnType<typeof userEvent.setup>) {
+  await screen.findByText(/your background/i);
+  await user.type(screen.getByPlaceholderText(/jane developer/i), "Vitor");
+  await user.type(screen.getByPlaceholderText(/10 years building/i), "10y backend in Go and Python");
+  await user.click(screen.getByRole("button", { name: /continue/i }));
+
+  await user.type(screen.getByPlaceholderText(/staff engineer/i), "Staff Engineer");
+  await user.type(screen.getByPlaceholderText(/paste the job posting/i), "Backend platform role");
+  await user.click(screen.getByRole("button", { name: /generate cover letter/i }));
+}
+
 describe("App", () => {
-  it("loads and shows the empty editor state", async () => {
+  it("loads on the Background step", async () => {
     render(<App />);
-    expect(await screen.findByText(/your generated cover letter will appear here/i)).toBeInTheDocument();
+    expect(await screen.findByText(/your background/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/jane developer/i)).toBeInTheDocument();
   });
 
-  it("disables export buttons until a letter exists", async () => {
+  it("locks the Review step until a letter exists", async () => {
     render(<App />);
-    await screen.findByText(/will appear here/i);
-    expect(screen.getByRole("button", { name: "PDF" })).toBeDisabled();
+    await screen.findByText(/your background/i);
+    expect(screen.getByRole("button", { name: /review letter/i })).toBeDisabled();
   });
 
   it("generates a letter and shows it in the preview", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText(/will appear here/i);
-
-    await user.type(screen.getByPlaceholderText(/jane developer/i), "Vitor");
-    await user.type(screen.getByPlaceholderText(/10 years building/i), "10y backend in Go and Python");
-    await user.type(screen.getByPlaceholderText(/staff engineer/i), "Staff Engineer");
-    await user.type(screen.getByPlaceholderText(/paste the job posting/i), "Backend platform role");
-
-    await user.click(screen.getByRole("button", { name: /generate cover letter/i }));
+    await generateLetter(user);
 
     expect(await screen.findByText(/i am a great fit/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PDF" })).toBeEnabled();
@@ -73,12 +82,7 @@ describe("App", () => {
   it("toggles to manual editing", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText(/will appear here/i);
-    await user.type(screen.getByPlaceholderText(/jane developer/i), "Vitor");
-    await user.type(screen.getByPlaceholderText(/10 years building/i), "bg text here");
-    await user.type(screen.getByPlaceholderText(/staff engineer/i), "Staff Engineer");
-    await user.type(screen.getByPlaceholderText(/paste the job posting/i), "role");
-    await user.click(screen.getByRole("button", { name: /generate cover letter/i }));
+    await generateLetter(user);
     await screen.findByText(/i am a great fit/i);
 
     await user.click(screen.getByRole("button", { name: /edit manually/i }));
