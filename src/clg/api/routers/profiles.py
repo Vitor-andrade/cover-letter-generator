@@ -10,6 +10,7 @@ from sqlmodel import Session
 from clg.api.deps import get_session
 from clg.api.schemas import ProfileCreate, ProfileRead, ProfileUpdate
 from clg.core.ingestion.parse import MAX_INPUT_BYTES, IngestionError, extract_upload
+from clg.core.ingestion.sectionize import sectionize
 from clg.core.persistence.models import Profile
 from clg.core.persistence.repositories import SqlProfileRepository
 from clg.core.profile.compose import compose_background_text
@@ -59,8 +60,16 @@ async def upload_profile(
         extracted = extract_upload(file.filename or "", data)
     except IngestionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    # Locally split the extracted text into structured sections (no LLM, ADR-004),
+    # then derive background_text from them — the user refines in the editor.
+    sections, _ = sectionize(extracted.text)
     profile = SqlProfileRepository(session).add(
-        Profile(name=name, background_text=extracted.text, source=extracted.source)
+        Profile(
+            name=name,
+            background_text=compose_background_text(sections),
+            source=extracted.source,
+            sections=sections,
+        )
     )
     return ProfileRead.model_validate(profile)
 
