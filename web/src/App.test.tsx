@@ -47,9 +47,11 @@ afterEach(() => {
 
 // Walk the stepper from the Background step through to a generated letter.
 async function generateLetter(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByText(/your background/i);
+  await screen.findByRole("heading", { name: /your background/i });
   await user.type(screen.getByPlaceholderText(/jane developer/i), "Vitor");
-  await user.type(screen.getByPlaceholderText(/10 years building/i), "10y backend in Go and Python");
+  // Fill a section so the Background step has content and Continue enables.
+  await user.click(screen.getByRole("button", { name: /summary/i }));
+  await user.type(screen.getByPlaceholderText(/backend engineer with/i), "10y backend in Go");
   await user.click(screen.getByRole("button", { name: /continue/i }));
 
   await user.type(screen.getByPlaceholderText(/staff engineer/i), "Staff Engineer");
@@ -60,13 +62,13 @@ async function generateLetter(user: ReturnType<typeof userEvent.setup>) {
 describe("App", () => {
   it("loads on the Background step", async () => {
     render(<App />);
-    expect(await screen.findByText(/your background/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /your background/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/jane developer/i)).toBeInTheDocument();
   });
 
   it("locks the Review step until a letter exists", async () => {
     render(<App />);
-    await screen.findByText(/your background/i);
+    await screen.findByRole("heading", { name: /your background/i });
     expect(screen.getByRole("button", { name: /review letter/i })).toBeDisabled();
   });
 
@@ -77,6 +79,26 @@ describe("App", () => {
 
     expect(await screen.findByText(/i am a great fit/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PDF" })).toBeEnabled();
+  });
+
+  it("falls back to the raw textarea for a legacy (sections=null) profile", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input.toString();
+        const ok = (b: unknown) =>
+          new Response(JSON.stringify(b), { status: 200, headers: { "Content-Type": "application/json" } });
+        if (url.endsWith("/api/settings")) return ok(settings);
+        if (url.endsWith("/api/profiles") && (init?.method ?? "GET") === "GET")
+          return ok([
+            { id: 5, name: "Old", background_text: "raw legacy cv", source: "manual", sections: null, created_at: "now" },
+          ]);
+        return new Response("{}", { status: 200 });
+      }),
+    );
+    render(<App />);
+    expect(await screen.findByDisplayValue(/raw legacy cv/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /structure this profile/i })).toBeInTheDocument();
   });
 
   it("toggles to manual editing", async () => {
