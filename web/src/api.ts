@@ -72,9 +72,21 @@ async function json<T>(res: Response): Promise<T> {
 export const api = {
   health: () => fetch("/api/health").then(json<{ status: string; version: string }>),
 
+  listProfiles: () => fetch("/api/profiles").then(json<Profile[]>),
+
   createProfile: (body: { name: string; background_text: string; source: ProfileSource }) =>
     fetch("/api/profiles", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(json<Profile>),
+
+  updateProfile: (
+    id: number,
+    body: { name: string; background_text: string; source: ProfileSource },
+  ) =>
+    fetch(`/api/profiles/${id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(json<Profile>),

@@ -32,6 +32,9 @@ export function App() {
   const [profileMode, setProfileMode] = useState<ProfileMode>("manual");
   const [background, setBackground] = useState("");
   const [fileName, setFileName] = useState("");
+  // The profile we're currently editing. When set, saves PATCH this row instead
+  // of creating a new one — so generating repeatedly no longer spawns duplicates.
+  const [currentProfileId, setCurrentProfileId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [jobDesc, setJobDesc] = useState("");
@@ -53,6 +56,25 @@ export function App() {
         setLanguage(s.default_language);
       })
       .catch((e) => flash(e.message ?? "Could not load settings", "err"));
+  }, []);
+
+  // Prefill from the most recent saved profile so the user doesn't re-enter
+  // name + CV on every run. Picks the highest id (autoincrement = newest).
+  useEffect(() => {
+    api
+      .listProfiles()
+      .then((profiles) => {
+        if (!profiles.length) return;
+        const latest = profiles.reduce((a, b) => (b.id > a.id ? b : a));
+        setCurrentProfileId(latest.id);
+        setName(latest.name);
+        setBackground(latest.background_text);
+        setProfileMode(latest.source);
+        flash(`Loaded your saved profile “${latest.name}”.`, "ok");
+      })
+      .catch(() => {
+        /* no saved profile yet — start blank */
+      });
   }, []);
 
   function flash(msg: string, kind: "ok" | "err") {
@@ -79,6 +101,10 @@ export function App() {
     setFileName(file.name);
     try {
       const profile = await api.uploadProfile(name || "My profile", file);
+      // The uploaded profile becomes the one we're editing, so later saves
+      // PATCH it instead of piling up new rows.
+      setCurrentProfileId(profile.id);
+      setProfileMode("upload");
       setBackground(profile.background_text);
       if (!profile.background_text.trim()) {
         flash("Little text extracted — the file may be scanned. Edit it below.", "err");
@@ -92,21 +118,42 @@ export function App() {
 
   const canGenerate = name.trim() && background.trim() && title.trim() && jobDesc.trim() && !busy;
 
+  // Persist the background to the current profile (PATCH), or create one the
+  // first time (POST). Returns the profile id to generate against.
+  async function saveProfile(): Promise<number> {
+    const body = {
+      name: name.trim(),
+      background_text: background.trim(),
+      source: profileMode,
+    };
+    const profile = currentProfileId
+      ? await api.updateProfile(currentProfileId, body)
+      : await api.createProfile(body);
+    setCurrentProfileId(profile.id);
+    return profile.id;
+  }
+
+  // Start a fresh profile — the next save creates a new row instead of editing.
+  function newProfile() {
+    setCurrentProfileId(null);
+    setName("");
+    setBackground("");
+    setFileName("");
+    setProfileMode("manual");
+    flash("Started a new profile.", "ok");
+  }
+
   async function generate() {
     setBusy(true);
     try {
-      const profile = await api.createProfile({
-        name: name.trim(),
-        background_text: background.trim(),
-        source: profileMode,
-      });
+      const profileId = await saveProfile();
       const job = await api.createJob({
         title: title.trim(),
         company: company.trim() || null,
         description: jobDesc.trim(),
       });
       const result = await api.generate({
-        profile_id: profile.id,
+        profile_id: profileId,
         job_id: job.id,
         language,
         provider: settings?.ai_provider,
@@ -184,6 +231,14 @@ export function App() {
         {/* ---- Intake ---- */}
         <div>
           <Panel title="Your background" hint="Upload a CV or paste it — text stays on your machine.">
+            <div className="toolbar" style={{ marginBottom: "0.6rem" }}>
+              <span className="hint">
+                {currentProfileId ? "Editing your saved profile" : "New profile"}
+              </span>
+              <button className="btn btn-ghost" onClick={newProfile} disabled={!currentProfileId && !name && !background}>
+                New profile
+              </button>
+            </div>
             <Field label="Your name">
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Developer" />
             </Field>
@@ -262,7 +317,7 @@ export function App() {
               <button aria-pressed={editMode === "ai"} onClick={() => setEditMode("ai")} disabled={!letter}>
                 AI draft
               </button>
-              <button aria-pressed={editMode === "manual"} onClick={() => setEditMode("manual")} disabled={!letter}>
+              <button aria-pressed={editMode === "manual"} onClick={() => setEditMode("manual")}>
                 Edit manually
               </button>
             </div>
@@ -276,11 +331,7 @@ export function App() {
           </div>
 
           <AnimatePresence mode="wait">
-            {!letter ? (
-              <motion.div key="empty" className="preview empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                Your generated cover letter will appear here.
-              </motion.div>
-            ) : editMode === "manual" ? (
+            {editMode === "manual" ? (
               <motion.textarea
                 key="edit"
                 className="textarea"
@@ -291,6 +342,10 @@ export function App() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               />
+            ) : !letter ? (
+              <motion.div key="empty" className="preview empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                Your generated cover letter will appear here.
+              </motion.div>
             ) : (
               <motion.div key="view" className="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 {content}
@@ -314,9 +369,11 @@ export function App() {
               </button>
             </div>
           )}
-          {letter && editMode === "manual" && (
+          {editMode === "manual" && (
             <p className="hint" style={{ marginTop: "0.6rem" }}>
-              Note: exports use the latest AI-generated version; manual edits here are for your reference.
+              {letter
+                ? "Note: exports use the latest AI-generated version; manual edits here are for your reference."
+                : "Generate a letter first to export — text typed here isn’t saved or exported yet."}
             </p>
           )}
         </Panel>
