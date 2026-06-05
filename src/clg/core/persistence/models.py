@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Any
 
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -31,7 +33,12 @@ class Profile(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     name: str
+    # ``background_text`` is DERIVED from ``sections`` (composed server-side) for
+    # structured profiles; it stays the single source the generation/export
+    # pipeline reads. ``sections`` is the structured editable source; ``None``
+    # marks a legacy (pre-sections) profile.
     background_text: str
+    sections: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON, nullable=True))
     source: ProfileSource = ProfileSource.manual
     created_at: datetime = Field(default_factory=_utcnow)
 

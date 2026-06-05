@@ -12,7 +12,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import lru_cache
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text
 from sqlmodel import Session, SQLModel, create_engine
 
 from clg.core.config import get_settings
@@ -33,10 +33,24 @@ def get_engine() -> Engine:
     return engine
 
 
+def _ensure_profile_sections_column(engine: Engine) -> None:
+    """Add ``profile.sections`` to a pre-existing DB.
+
+    ``create_all`` only creates missing tables — it never alters an existing one,
+    so databases created before the structured-sections feature lack the column.
+    Idempotent: guarded by ``PRAGMA table_info`` so it is a no-op once present.
+    """
+    with engine.begin() as conn:
+        columns = {row[1] for row in conn.execute(text("PRAGMA table_info(profile)"))}
+        if "sections" not in columns:
+            conn.execute(text("ALTER TABLE profile ADD COLUMN sections JSON"))
+
+
 def init_db() -> None:
-    """Create tables if missing and tighten the DB file permissions to 0600."""
+    """Create tables if missing, apply lightweight migrations, and lock the DB file."""
     engine = get_engine()
     SQLModel.metadata.create_all(engine)
+    _ensure_profile_sections_column(engine)
     db_path = get_settings().db_path
     if db_path.exists():
         os.chmod(db_path, 0o600)
