@@ -4,8 +4,10 @@ import {
   api,
   type ExportFormat,
   type Letter,
+  type Sections,
   type Settings,
 } from "./api";
+import { SectionsEditor, emptySections, hasAnyContent } from "./SectionsEditor";
 import { Field, Panel, Stepper, type StepDef, Toast } from "./ui";
 
 const EXPORTS: ExportFormat[] = ["pdf", "docx", "html", "markdown", "txt"];
@@ -41,6 +43,9 @@ export function App() {
   // intake
   const [name, setName] = useState("");
   const [profileMode, setProfileMode] = useState<ProfileMode>("manual");
+  // Structured sections are the editable source of truth. `null` means a legacy
+  // (pre-sections) profile — we then fall back to the raw `background` textarea.
+  const [sections, setSections] = useState<Sections | null>(emptySections());
   const [background, setBackground] = useState("");
   const [fileName, setFileName] = useState("");
   // The profile we're currently editing. When set, saves PATCH this row instead
@@ -81,6 +86,7 @@ export function App() {
         setCurrentProfileId(latest.id);
         setName(latest.name);
         setBackground(latest.background_text);
+        setSections(latest.sections); // null for legacy profiles → raw fallback
         setProfileMode(latest.source);
         flash(`Loaded your saved profile “${latest.name}”.`, "ok");
       })
@@ -114,21 +120,25 @@ export function App() {
     try {
       const profile = await api.uploadProfile(name || "My profile", file);
       // The uploaded profile becomes the one we're editing, so later saves
-      // PATCH it instead of piling up new rows.
+      // PATCH it instead of piling up new rows. Its sections were pre-filled by
+      // the local heuristic — drop them into the editor for the user to refine.
       setCurrentProfileId(profile.id);
       setProfileMode("upload");
       setBackground(profile.background_text);
-      if (!profile.background_text.trim()) {
-        flash("Little text extracted — the file may be scanned. Edit it below.", "err");
+      setSections(profile.sections ?? emptySections());
+      if (profile.sections && hasAnyContent(profile.sections)) {
+        flash("CV imported into sections — review and refine below.", "ok");
       } else {
-        flash("CV text extracted — review and edit below.", "ok");
+        flash("Little text extracted — the file may be scanned. Fill it in below.", "err");
       }
     } catch (e) {
       flash(e instanceof Error ? e.message : "Upload failed", "err");
     }
   }
 
-  const backgroundReady = Boolean(name.trim() && background.trim());
+  const backgroundReady = Boolean(
+    name.trim() && (sections ? hasAnyContent(sections) : background.trim()),
+  );
   const canGenerate = backgroundReady && title.trim() && jobDesc.trim() && !busy;
 
   function stepEnabled(key: string): boolean {
@@ -152,11 +162,11 @@ export function App() {
   // Persist the background to the current profile (PATCH), or create one the
   // first time (POST). Returns the profile id to generate against.
   async function saveProfile(): Promise<number> {
-    const body = {
-      name: name.trim(),
-      background_text: background.trim(),
-      source: profileMode,
-    };
+    // With sections, the server composes background_text from them; the legacy
+    // path sends the raw text. Either way one source of truth is sent.
+    const body = sections
+      ? { name: name.trim(), source: profileMode, sections }
+      : { name: name.trim(), source: profileMode, background_text: background.trim() };
     const profile = currentProfileId
       ? await api.updateProfile(currentProfileId, body)
       : await api.createProfile(body);
@@ -169,6 +179,7 @@ export function App() {
     setCurrentProfileId(null);
     setName("");
     setBackground("");
+    setSections(emptySections());
     setFileName("");
     setProfileMode("manual");
     flash("Started a new profile.", "ok");
@@ -269,7 +280,7 @@ export function App() {
       <div className="step-body">
         {/* ---- Step 1: Background ---- */}
         {step === "background" && (
-          <Panel title="Your background" hint="Upload a CV or paste it — text stays on your machine.">
+          <Panel title="Your background" hint="Fill in your background by section, or upload a CV to pre-fill them.">
             <div className="toolbar" style={{ marginBottom: "0.6rem" }}>
               <span className="hint">
                 {currentProfileId ? "Editing your saved profile" : "New profile"}
@@ -282,39 +293,42 @@ export function App() {
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Developer" />
             </Field>
 
-            <div className="toggle" role="group" aria-label="Background source" style={{ marginBottom: "0.9rem" }}>
-              <button aria-pressed={profileMode === "manual"} onClick={() => setProfileMode("manual")}>
-                Paste text
+            <div className="cv-upload">
+              <input
+                ref={fileInput}
+                type="file"
+                accept=".pdf,.docx"
+                hidden
+                onChange={(e) => e.target.files?.[0] && uploadCV(e.target.files[0])}
+              />
+              <button className="btn btn-ghost" onClick={() => fileInput.current?.click()}>
+                Upload CV (PDF/DOCX)
               </button>
-              <button aria-pressed={profileMode === "upload"} onClick={() => setProfileMode("upload")}>
-                Upload CV
-              </button>
+              {fileName && <span className="chip">{fileName}</span>}
+              <span className="hint">Parsed locally into the sections below — your CV never leaves your machine.</span>
             </div>
 
-            {profileMode === "upload" && (
-              <div style={{ marginBottom: "0.9rem" }}>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept=".pdf,.docx"
-                  hidden
-                  onChange={(e) => e.target.files?.[0] && uploadCV(e.target.files[0])}
-                />
-                <button className="btn btn-ghost" onClick={() => fileInput.current?.click()}>
-                  Choose PDF or DOCX
+            {sections ? (
+              <SectionsEditor sections={sections} onChange={setSections} />
+            ) : (
+              <>
+                <Field label="Background (unstructured — legacy profile)">
+                  <textarea
+                    className="textarea"
+                    value={background}
+                    onChange={(e) => setBackground(e.target.value)}
+                    placeholder="10 years building backend systems in Go and Python; led a team of 6; shipped…"
+                  />
+                </Field>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => setSections({ ...emptySections(), summary: background })}
+                  style={{ marginBottom: "0.4rem" }}
+                >
+                  Structure this profile into sections
                 </button>
-                {fileName && <span className="chip" style={{ marginLeft: "0.6rem" }}>{fileName}</span>}
-              </div>
+              </>
             )}
-
-            <Field label="Background (experience, education, projects, achievements)">
-              <textarea
-                className="textarea"
-                value={background}
-                onChange={(e) => setBackground(e.target.value)}
-                placeholder="10 years building backend systems in Go and Python; led a team of 6; shipped…"
-              />
-            </Field>
             <button className="btn btn-primary" onClick={goToJob} disabled={!backgroundReady} style={{ width: "100%", marginTop: "0.3rem" }}>
               Continue
             </button>
