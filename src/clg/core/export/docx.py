@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 
-from clg.core.export.base import ExportError, ExportFormat, LetterDocument
+from clg.core.export.base import ExportError, ExportFormat, LetterDocument, split_name_header
 
 
 class DocxRenderer:
@@ -15,12 +15,21 @@ class DocxRenderer:
     def render(self, doc: LetterDocument) -> bytes:
         try:
             import docx
+            from docx.shared import Pt
 
             document = docx.Document()
-            # The content already includes its header and signature. Split on
-            # blank lines into paragraphs; preserve single newlines within a
-            # block (e.g. the contact header) as Word line breaks.
-            for block in (b for b in doc.content.split("\n\n") if b.strip()):
+            # The content already includes its header and signature. The first
+            # line is the candidate's name — render it bold and larger for
+            # emphasis, then the rest of the letter as normal paragraphs.
+            name, body = split_name_header(doc.content)
+            if name:
+                heading = document.add_paragraph()
+                run = heading.add_run(name)
+                run.bold = True
+                run.font.size = Pt(20)
+            # Split on blank lines into paragraphs; preserve single newlines
+            # within a block (e.g. the contact header) as Word line breaks.
+            for block in (b for b in body.split("\n\n") if b.strip()):
                 paragraph = document.add_paragraph()
                 for i, line in enumerate(block.split("\n")):
                     if i:

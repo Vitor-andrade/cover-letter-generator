@@ -44,6 +44,17 @@ class ExportError(RuntimeError):
     """Raised when a renderer cannot produce output (e.g. missing system deps)."""
 
 
+def split_name_header(content: str) -> tuple[str, str]:
+    """Split a structured letter into its name header and the remaining body.
+
+    The generation format places the candidate's full name on the first line;
+    styled renderers (HTML/PDF/DOCX/Markdown) emphasize it as a heading. Returns
+    ``("", "")`` for empty content, or ``(name, body)`` otherwise.
+    """
+    name, _, body = content.lstrip("\n").partition("\n")
+    return name.strip(), body
+
+
 def available_formats() -> list[str]:
     return [f.value for f in ExportFormat]
 

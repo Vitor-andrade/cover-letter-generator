@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from jinja2 import Template
 
-from clg.core.export.base import ExportFormat, LetterDocument
+from clg.core.export.base import ExportFormat, LetterDocument, split_name_header
 
 _TEMPLATE = Template(
     """<!doctype html>
@@ -16,12 +16,13 @@ _TEMPLATE = Template(
   @page { size: A4; margin: 2.5cm; }
   body { font-family: Georgia, 'Times New Roman', serif; font-size: 12pt;
          line-height: 1.5; color: #1a1a1a; max-width: 70ch; margin: 2rem auto; }
-  h1 { font-size: 16pt; margin-bottom: 1.2rem; }
+  h1.name { font-size: 22pt; font-weight: 700; margin: 0 0 0.8rem; }
   p { margin: 0 0 1rem; white-space: pre-wrap; }
 </style>
 </head>
 <body>
-{% for para in paragraphs %}<p>{{ para }}</p>
+{% if name %}<h1 class="name">{{ name }}</h1>
+{% endif %}{% for para in paragraphs %}<p>{{ para }}</p>
 {% endfor %}</body>
 </html>
 """.strip()
@@ -29,10 +30,12 @@ _TEMPLATE = Template(
 
 
 def build_html(doc: LetterDocument) -> str:
-    paragraphs = [p.strip() for p in doc.content.split("\n\n") if p.strip()]
+    name, body = split_name_header(doc.content)
+    paragraphs = [p.strip() for p in body.split("\n\n") if p.strip()]
     return _TEMPLATE.render(
         language=doc.language,
         title=doc.title,
+        name=name,
         paragraphs=paragraphs,
     )
 
