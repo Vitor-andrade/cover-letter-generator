@@ -201,7 +201,8 @@ erDiagram
     PROFILE {
         int id PK
         string name
-        text background_text
+        text background_text "derived from sections"
+        json sections "9 structured sections, null=legacy"
         string source "upload|manual"
         datetime created_at
     }

@@ -4,13 +4,15 @@ Craft personalized, professional cover letters for international tech roles — 
 
 - 🔒 **Local-first & private** — runs at `127.0.0.1`; no telemetry, no hosted backend.
 - 🆓 **Free by default** — Ollama runs locally at zero cost; cloud providers are optional and pay-per-use with your own key.
-- ✍️ **AI-assist ⇄ manual** — generate a tailored draft, then refine it by prompt or edit it yourself.
+- 🧩 **Structured background** — organize your profile into sections (summary, skills, experience, projects, education, certifications, languages, …). Upload a CV and it's split into those sections locally. Your profile is saved between runs, so you fill it once.
+- 🪜 **Guided flow** — a three-step wizard: background → generate → review.
+- ✍️ **AI-assist ⇄ manual** — generate a tailored, one-page draft, then refine it by prompt or edit it yourself.
 - 🌍 **Multi-language** — English-first, with a per-letter language picker (English, Português, Español, Français, Deutsch).
-- 📄 **Export anywhere** — PDF, DOCX, HTML, Markdown, and TXT.
+- 📄 **Export anywhere** — PDF, DOCX, HTML, Markdown, and TXT (your name is emphasized in the letter header).
 
 ## How it works
 
-You provide your background (paste it or upload a PDF/DOCX CV — parsed locally) and the job description. The app builds a tailored prompt and asks your chosen model to draft a cover letter, which you can revise or edit before exporting.
+A three-step guided flow walks you from **background → generate → review**. You fill in your background in structured sections (or upload a PDF/DOCX CV, which is parsed and split into sections locally), then the job details. The app composes your sections into a tailored prompt and asks your chosen model to draft a one-page cover letter, which you can revise or edit before exporting. Your profile is saved locally and pre-loaded on the next run.
 
 ```
 Browser (localhost) ─▶ FastAPI ─▶ generation ─▶ provider (Ollama / Gemini / Anthropic / OpenAI)
@@ -154,7 +156,8 @@ src/clg/
   bootstrap/     # launcher (uv run clg / uvx clg)
   api/           # FastAPI routers + DTOs (thin adapters)
   core/          # framework-agnostic domain
-    ingestion/   # local CV parsing (pdfplumber / python-docx)
+    ingestion/   # local CV parsing + heuristic sectionizing (pdfplumber / python-docx)
+    profile/     # compose structured sections → background text
     generation/  # prompt building + orchestration
     providers/   # ollama / gemini / anthropic / openai + registry
     export/      # pdf / docx / html / markdown / txt renderers
