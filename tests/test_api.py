@@ -64,6 +64,48 @@ def test_settings_reflect_env_keys(client, monkeypatch):
     assert "sk-secret" not in json.dumps(body)
 
 
+SECTIONS = {
+    "contact": {"email": "ada@x.com", "location": "Berlin"},
+    "summary": "Backend engineer.",
+    "key_skills": ["Go", "Python"],
+    "experiences": [
+        {"role": "Staff", "company": "Acme", "period": "2020", "highlights": ["Led team"]}
+    ],
+}
+
+
+def test_sections_compose_and_roundtrip(client):
+    p = client.post("/api/profiles", json={"name": "Ada", "sections": SECTIONS}).json()
+    # background_text is DERIVED from sections (composed markdown).
+    assert "## Summary" in p["background_text"]
+    assert "Backend engineer." in p["background_text"]
+    assert "- Staff at Acme (2020)" in p["background_text"]
+    # sections round-trip on read (missing fields default-filled).
+    got = client.get(f"/api/profiles/{p['id']}").json()
+    assert got["sections"]["summary"] == "Backend engineer."
+    assert got["sections"]["key_skills"] == ["Go", "Python"]
+    assert got["sections"]["projects"] == []
+
+
+def test_patch_recomposes_background(client):
+    """The dirty-tracking guard: editing sections must persist a new background_text."""
+    p = client.post("/api/profiles", json={"name": "Ada", "sections": SECTIONS}).json()
+    new = dict(SECTIONS, summary="Rewritten summary.")
+    client.patch(f"/api/profiles/{p['id']}", json={"name": "Ada", "sections": new})
+    got = client.get(f"/api/profiles/{p['id']}").json()
+    assert got["sections"]["summary"] == "Rewritten summary."
+    assert "Rewritten summary." in got["background_text"]
+
+
+def test_legacy_unstructured_profile(client):
+    p = client.post(
+        "/api/profiles",
+        json={"name": "Old", "background_text": "raw cv text", "source": "manual"},
+    ).json()
+    assert p["sections"] is None
+    assert p["background_text"] == "raw cv text"
+
+
 def test_missing_profile_404(client):
     assert client.get("/api/profiles/999").status_code == 404
 
